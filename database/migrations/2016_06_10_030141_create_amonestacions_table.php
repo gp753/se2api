@@ -25,7 +25,7 @@ class CreateAmonestacionsTable extends Migration
             $table->integer('equ_id')->unsigned();
             $table->foreign('equ_id')->references('id')->on('equipos');
             $table->text('amonestacion');
-            $table->text('descripcion');
+            $table->text('descripcion')->nullable();
         });
     }
 

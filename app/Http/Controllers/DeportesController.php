@@ -31,9 +31,6 @@ class DeportesController extends Controller
             'post_equipo',
             'put_equipo',
             'delete_equipo'
-
-
-            
             ]]);
     }
 
@@ -58,14 +55,83 @@ class DeportesController extends Controller
             $amonestacion->jug_id = $request->json('jug_id');
             $amonestacion->equ_id = $request->json('equ_id');
             $amonestacion->amonestacion = $request->json('amonestacion');
-            $amonestacion->descripcion = $request->json('descripcion')
+            $amonestacion->descripcion = $request->json('descripcion');
             $amonestacion->save();
 
             $amonestaciones = DB::table('amonestacions')
-                                ->select('par_id','jug_id','amonestacion','descripcion')
-                                ->whereNull('deleted_at')
-                                ->where('jug_id','=',$request->json('jug_id'))
-                                ->get();
+                                    ->select('amonestacions.jug_id', 'jugadors.nombre as jugador', 'amonestacions.par_id','partidos.lugar','amonestacions.equ_id','equipos.nombre as equipo')
+                                    ->leftjoin('jugadors','jugadors.id','=','amonestacions.jug_id')
+                                    ->leftjoin('partidos','partidos.id','=','amonestacions.par_id')
+                                    ->leftjoin('equipos','equipos.id','=','amonestacions.equ_id')
+                                    ->whereNull('amonestacions.deleted_at')
+                                    ->where('amonestacions.jug_id','=',$request->json('jug_id'))
+                                    ->get();
+
+             $resultado = ['data' => array('amonestaciones'=>$amonestaciones),
+                            'message' => 'success'];
+                return response()->json($resultado, 200);
+    }
+
+    public function get_jug_amonestacion($id)
+    {
+         $amonestaciones = DB::table('amonestacions')
+                                    ->select('amonestacions.jug_id', 'jugadors.nombre as jugador', 'amonestacions.par_id','partidos.lugar','amonestacions.equ_id','equipos.nombre as equipo','amonestacions.amonestacion')
+                                    ->leftjoin('jugadors','jugadors.id','=','amonestacions.jug_id')
+                                    ->leftjoin('partidos','partidos.id','=','amonestacions.par_id')
+                                    ->leftjoin('equipos','equipos.id','=','amonestacions.equ_id')
+                                    ->whereNull('amonestacions.deleted_at')
+                                    ->where('amonestacions.jug_id','=',$id)
+                                    ->get();
+
+             $resultado = ['data' => array('amonestaciones'=>$amonestaciones),
+                            'message' => 'success'];
+                return response()->json($resultado, 200);
+    }
+    public function get_equ_amonestacion($id)
+    {
+         $amonestaciones = DB::table('amonestacions')
+                                    ->select('amonestacions.jug_id', 'jugadors.nombre as jugador', 'amonestacions.par_id','partidos.lugar','amonestacions.equ_id','equipos.nombre as equipo','amonestacions.amonestacion')
+                                    ->leftjoin('jugadors','jugadors.id','=','amonestacions.jug_id')
+                                    ->leftjoin('partidos','partidos.id','=','amonestacions.par_id')
+                                    ->leftjoin('equipos','equipos.id','=','amonestacions.equ_id')
+                                    ->whereNull('amonestacions.deleted_at')
+                                    ->where('amonestacions.equ_id','=',$id)
+                                    ->get();
+
+             $resultado = ['data' => array('amonestaciones'=>$amonestaciones),
+                            'message' => 'success'];
+                return response()->json($resultado, 200);
+    }
+
+    public function get_par_amonestacion($id)
+    {
+         $amonestaciones = DB::table('amonestacions')
+                                    ->select('amonestacions.jug_id', 'jugadors.nombre as jugador', 'amonestacions.par_id','partidos.lugar','amonestacions.equ_id','equipos.nombre as equipo','amonestacions.amonestacion')
+                                    ->leftjoin('jugadors','jugadors.id','=','amonestacions.jug_id')
+                                    ->leftjoin('partidos','partidos.id','=','amonestacions.par_id')
+                                    ->leftjoin('equipos','equipos.id','=','amonestacions.equ_id')
+                                    ->whereNull('amonestacions.deleted_at')
+                                    ->where('amonestacions.par_id','=',$id)
+                                    ->get();
+
+             $resultado = ['data' => array('amonestaciones'=>$amonestaciones),
+                            'message' => 'success'];
+                return response()->json($resultado, 200);
+    }
+
+    public function delete_amonestacion ($id)
+    {
+        $amonestacion = \App\Amonestacion::find($id);
+        $partido = $amonestacion->par_id;
+        $amonestacion->delete();
+        $amonestaciones = DB::table('amonestacions')
+                                    ->select('amonestacions.jug_id', 'jugadors.nombre as jugador', 'amonestacions.par_id','partidos.lugar','amonestacions.equ_id','equipos.nombre as equipo','amonestacions.amonestacion')
+                                    ->leftjoin('jugadors','jugadors.id','=','amonestacions.jug_id')
+                                    ->leftjoin('partidos','partidos.id','=','amonestacions.par_id')
+                                    ->leftjoin('equipos','equipos.id','=','amonestacions.equ_id')
+                                    ->whereNull('amonestacions.deleted_at')
+                                    ->where('amonestacions.par_id','=',$partido)
+                                    ->get();
 
              $resultado = ['data' => array('amonestaciones'=>$amonestaciones),
                             'message' => 'success'];
