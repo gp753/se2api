@@ -224,9 +224,14 @@
     
     
     Route::get('/api/partidoResultados/{id}','DeportesController@get_tantos_partido');
+
+    Route::get('/api/goleadores','DeportesController@get_goleadores');
+
     Route::post('/api/partidoResultados','DeportesController@post_par_tan');
     Route::put('/api/partido_tanto/{id}','DeportesController@put_par_tan');
     Route::delete('/api/partido_tanto/{id}','DeportesController@delete_par_tan');
+
+    Route::delete('/api/amonestacion/{id}','DeportesController@delete_amonestacion');
    
     Route::post('/api/partido_equipo','DeportesController@post_par_equ');
     Route::put('/api/partido_equipo/{id}','DeportesController@put_par_equ');

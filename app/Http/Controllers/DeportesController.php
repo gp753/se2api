@@ -87,7 +87,7 @@ class DeportesController extends Controller
                             'message' => 'success'];
                 return response()->json($resultado, 200);
     }
-    public function get_equ_amonestacion($id)
+    public function get_equ_amonestacion($id) //amonestaciones por equipo
     {
          $amonestaciones = DB::table('amonestacions')
                                     ->select('amonestacions.jug_id', 'jugadors.nombre as jugador', 'amonestacions.par_id','partidos.lugar','amonestacions.equ_id','equipos.nombre as equipo','amonestacions.amonestacion')
@@ -103,7 +103,7 @@ class DeportesController extends Controller
                 return response()->json($resultado, 200);
     }
 
-    public function get_par_amonestacion($id)
+    public function get_par_amonestacion($id) //amonestaciones por partido
     {
          $amonestaciones = DB::table('amonestacions')
                                     ->select('amonestacions.jug_id', 'jugadors.nombre as jugador', 'amonestacions.par_id','partidos.lugar','amonestacions.equ_id','equipos.nombre as equipo','amonestacions.amonestacion')
@@ -119,7 +119,21 @@ class DeportesController extends Controller
                 return response()->json($resultado, 200);
     }
 
-    public function delete_amonestacion ($id)
+    public function get_goleadores() //goleadores
+    {
+        $goleadores = DB::table('partido__tantos')
+                        ->select('partido__tantos.jug_id','jugadors.nombre as jugador', DB::raw('sum(partido__tantos.valor) as goles'))
+                        ->leftjoin('jugadors','jugadors.id','=','partido__tantos.jug_id')
+                        ->groupBy('partido__tantos.jug_id','jugadors.nombre')
+                        ->orderBy('goles','desc')
+                        ->whereNull('partido__tantos.deleted_at')
+                        ->get();
+        $resultado = ['data' => array('goleadores'=>$goleadores),
+                            'message' => 'success'];
+        return response()->json($resultado, 200);
+    }
+
+    public function delete_amonestacion ($id) //borra la amonestacion
     {
         $amonestacion = \App\Amonestacion::find($id);
         $partido = $amonestacion->par_id;
