@@ -231,3 +231,5 @@
     Route::post('/api/partido_equipo','DeportesController@post_par_equ');
     Route::put('/api/partido_equipo/{id}','DeportesController@put_par_equ');
     Route::delete('/api/partido_equipo/{id}','DeportesController@delete_par_equ');
+
+    Route::post('/api/amonestaciones','DeportesController@post_amonestacion');

@@ -37,6 +37,41 @@ class DeportesController extends Controller
             ]]);
     }
 
+    public function post_amonestacion (Request $request)
+    {
+        $validator = Validator::make($request->json()->all(), [
+                'par_id' => 'required|integer',
+                'jug_id' => 'required|integer',
+                'equ_id' => 'required|integer',
+                'amonestacion' => 'required|string',
+                'descripcion'=>'string'
+                
+            ]);
+        
+            if ($validator->fails()) {
+                $resultado = ['message' => 'Formato de entrada incorrecto'];
+                return response()->json($resultado, 400);
+            }
+
+            $amonestacion = new \App\Amonestacion;
+            $amonestacion->par_id = $request->json('par_id');
+            $amonestacion->jug_id = $request->json('jug_id');
+            $amonestacion->equ_id = $request->json('equ_id');
+            $amonestacion->amonestacion = $request->json('amonestacion');
+            $amonestacion->descripcion = $request->json('descripcion')
+            $amonestacion->save();
+
+            $amonestaciones = DB::table('amonestacions')
+                                ->select('par_id','jug_id','amonestacion','descripcion')
+                                ->whereNull('deleted_at')
+                                ->where('jug_id','=',$request->json('jug_id'))
+                                ->get();
+
+             $resultado = ['data' => array('amonestaciones'=>$amonestaciones),
+                            'message' => 'success'];
+                return response()->json($resultado, 200);
+    }
+
     public function get_deporte(){
         $deporte = \App\Deporte::all();
         $resultado = ['data'=> $deporte];

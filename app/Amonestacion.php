@@ -5,10 +5,11 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Jugador extends Model
+
+class Amonestacion extends Model
 {
     //establecemos nombre de la tabla
-    protected $table = 'jugadors';
+    protected $table = 'amonestacions';
     //protegemos los campos contra asignación masiva
     protected $guarded = ['*'];
     
@@ -17,16 +18,14 @@ class Jugador extends Model
     protected $dates = ['deleted_at'];
     
     //RELACIONES
-    public function user() {
-        return $this->belongsTo('User');
+     public function partidos() {
+        return $this->belongsTo('Partido');
     }
-    Public function amonestacions() {
-        return $this->hasMany('Jugador');
-    }
-    Public function partido_tantos() {
-        return $this->hasMany('Jugador');
+    public function jugadors() {
+        return $this->belongsTo('Jugador');
     }
     public function equipos() {
-        return $this->belongsToMany('Equipo', 'jugador__equipos', 'jug_id', 'equ_id');
+        return $this->belongsTo('Equipo');
     }
+
 }

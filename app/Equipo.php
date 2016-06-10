@@ -24,7 +24,9 @@ class Equipo extends Model
     public function partido_tantos(){
         return $this->hasMany('Equipo');
     }
-    
+    Public function amonestacions() {
+        return $this->hasMany('Equipo');
+    }
     public function partidos() {
         return $this->belongsToMany('Partido', 'partido__equipos', 'equ_id', 'par_id');
     }
