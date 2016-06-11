@@ -231,10 +231,14 @@
     Route::put('/api/partido_tanto/{id}','DeportesController@put_par_tan');
     Route::delete('/api/partido_tanto/{id}','DeportesController@delete_par_tan');
 
-    Route::delete('/api/amonestacion/{id}','DeportesController@delete_amonestacion');
+  
    
     Route::post('/api/partido_equipo','DeportesController@post_par_equ');
     Route::put('/api/partido_equipo/{id}','DeportesController@put_par_equ');
     Route::delete('/api/partido_equipo/{id}','DeportesController@delete_par_equ');
 
     Route::post('/api/amonestaciones','DeportesController@post_amonestacion');
+    Route::delete('/api/amonestacion/{id}','DeportesController@delete_amonestacion');
+    Route::get('/api/amonestaciones/jugador/{id}','DeportesController@get_jug_amonestacion');
+    Route::get('/api/amonestaciones/equipo/{id}','DeportesController@get_equ_amonestacion');
+    Route::get('/api/amonestaciones/partido/{id}','DeportesController@get_par_amonestacion');
