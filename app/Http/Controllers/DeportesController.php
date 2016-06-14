@@ -931,15 +931,58 @@ class DeportesController extends Controller
 
     public function get_partidos_torneo_list($id)
     {
-        $partidos = DB::table('partidos')
-                            ->select('partidos.id','partidos.dep_id','deportes.descripcion as deporte',
-                                'partidos.tor_id','torneos.nombre as torneo', 'partidos.fecha',
-                                'partidos.lugar', 'partidos.puntaje_ganador','partidos.puntaje_derrotado')
-                            ->leftjoin('deportes','deportes.id', '=', 'partidos.dep_id')
-                            ->leftjoin('torneos','torneos.id', '=', 'partidos.tor_id')
-                            ->whereNull('partidos.deleted_at')
-                            ->where('partidos.tor_id','=',$id)
-                            ->get();
+        $partidos = DB::select('
+            select partidos.id, partidos.dep_id, deportes.descripcion as deporte, partidos.tor_id, torneos.nombre as torneo, partidos.fecha,
+    partidos.lugar, partidos.puntaje_ganador, partidos.puntaje_derrotado,
+    (select equipos.id as id_local
+from equipos
+left join partido__equipos
+on partido__equipos.equ_id = equipos.id
+where partido__equipos.part_id = partidos.id
+order by id_local
+limit 1),
+(select equipos.nombre as equipo_local
+from equipos
+left join partido__equipos
+on partido__equipos.equ_id = equipos.id
+where partido__equipos.part_id = partidos.id
+order by partido__equipos.id
+limit 1),
+(select equipos.id as id_visitante
+from equipos
+left join partido__equipos
+on partido__equipos.equ_id = equipos.id
+where partido__equipos.part_id = partidos.id and equipos.id !=  (select equipos.id as id_local
+from equipos
+left join partido__equipos
+on partido__equipos.equ_id = equipos.id
+where partido__equipos.part_id = partidos.id
+order by id_local
+limit 1)
+order by equipos.id
+limit 1
+),
+(select equipos.nombre as equipo_visitante
+from equipos
+left join partido__equipos
+on partido__equipos.equ_id = equipos.id
+where partido__equipos.part_id = partidos.id and equipos.id !=  (select equipos.id as id_local
+from equipos
+left join partido__equipos
+on partido__equipos.equ_id = equipos.id
+where partido__equipos.part_id = partidos.id
+order by id_local
+limit 1)
+order by equipos.id
+limit 1
+)
+from partidos
+left join deportes
+on deportes.id = partidos.dep_id
+left join torneos
+on torneos.id = partidos.tor_id
+where partidos.tor_id = '.$id.' and partidos.deleted_at is null;
+ ');
             $resultado = ['data'=> array('partidos'=>$partidos)];
         return response()->json($resultado, 200);
     }
@@ -1121,8 +1164,9 @@ order by puntaje desc
                     ->rightjoin('deportes','deportes.id','=','partidos.dep_id')
                     ->where('torneos.id','=',$id)
                     ->whereNull('partidos.deleted_at')
+                    ->orderby('partidos.fecha','asc')
                     ->get();
-        $resultado = ['data'=> array('partidosus'=>$torneo)];
+        $resultado = ['data'=> array('partidos'=>$torneo)];
         return response()->json($resultado, 200);
     }
 
