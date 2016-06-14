@@ -15,7 +15,7 @@ class DeportesController extends Controller
     //
      public function __construct()
     {
-        $this->middleware('auth', ['only' => [
+        /*$this->middleware('auth', ['only' => [
             'post_torneo',
             'put_torneo',
             'delete_torneo',
@@ -31,7 +31,7 @@ class DeportesController extends Controller
             'post_equipo',
             'put_equipo',
             'delete_equipo'
-            ]]);
+            ]]);*/
     }
 
     public function post_amonestacion (Request $request)
@@ -401,18 +401,18 @@ class DeportesController extends Controller
         }*/
 
         $pe = new \App\Jugador_Equipo;
-        $pe->equ_id = $jug_id;
-        $pe->jug_id = $equ_id;
+        $pe->jug_id = $jug_id;
+        $pe->equ_id = $equ_id;
 
         $pe->save();
 
-        $pes = DB::table('equipos')
-                    ->select('equipos.id','equipos.nombre')
-                    ->leftjoin('jugador__equipos','jugador__equipos.equ_id','=','equipos.id')
+        $pes = DB::table('jugadors')
+                    ->select('jugadors.id','jugadors.nombre')
+                    ->rightjoin('jugador__equipos','jugadors.id', '=', 'jugador__equipos.jug_id')
                     ->whereNull('jugador__equipos.deleted_at')
-                    ->where('jugador__equipos.jug_id','=', $jug_id)
+                    ->where('jugador__equipos.equ_id','=', $equ_id)
                     ->get();
-        $resultado = ['data' => array('equipos' => $pes)];
+        $resultado = ['data' => array('jugadores' => $pes)];
         return response()->json($resultado, 200);
 
 
@@ -469,13 +469,13 @@ class DeportesController extends Controller
 
 		$pe->delete();
 
-		$pes = DB::table('equipos')
-                    ->select('equipos.id','equipos.nombre')
-                    ->leftjoin('jugador__equipos','jugador__equipos.equ_id','=','equipos.id')
+		$pes = DB::table('jugadors')
+                    ->select('jugadors.id','jugadors.nombre')
+                    ->rightjoin('jugador__equipos','jugadors.id', '=', 'jugador__equipos.jug_id')
                     ->whereNull('jugador__equipos.deleted_at')
-                    ->where('jugador__equipos.jug_id','=', $jug_id)
+                    ->where('jugador__equipos.equ_id','=', $equ_id)
                     ->get();
-        $resultado = ['data' => array('equipos' => $pes)];
+        $resultado = ['data' => array('jugadores' => $pes)];
         return response()->json($resultado, 200);
 	}
 	//fin jugador equipo
@@ -484,7 +484,7 @@ class DeportesController extends Controller
     {
 
     	$jugadores = DB::table('jugadors')
-                            ->select('id','nombre')
+                            ->select('id','nombre','usu_id')
                             ->whereNull('jugadors.deleted_at')
                             ->get();
          $resultado = ['data' => array('jugadores'=>$jugadores)];
@@ -526,7 +526,7 @@ class DeportesController extends Controller
             $jugador->nombre = $request->json('nombre');
             $jugador->save();
             $jugadores = DB::table('jugadors')
-                            ->select('id','nombre')
+                            ->select('id','nombre', 'usu_id')
                             ->where('jugadors.deleted_at')
                             ->get();
             $resultado = ['data' => array('jugadores'=>$jugadores)];
@@ -561,7 +561,7 @@ class DeportesController extends Controller
             if($request->json('nombre') != null){ $jugador->nombre = $request->json('nombre');};
             $jugador->save();
             $jugadores = DB::table('jugadors')
-                            ->select('id','nombre')
+                            ->select('id','nombre', 'usu_id')
                             ->where('jugadors.deleted_at')
                             ->get();
             $resultado = ['data' => array('jugadores'=>$jugadores)];
@@ -578,7 +578,7 @@ class DeportesController extends Controller
 
     	$jugador->delete();
     	 $jugadores = DB::table('jugadors')
-                            ->select('id','nombre')
+                            ->select('id','nombre', 'usu_id')
                             ->whereNull('jugadors.deleted_at')
                             ->get();
             $resultado = ['data' => array('jugadores'=>$jugadores)];
@@ -593,9 +593,9 @@ class DeportesController extends Controller
         return response()->json($resultado, 200);
     }
 
-    public function post_par_equ (Request $request)
+    public function post_par_equ ($par_id, $equ_id)
     {
-    	$validator = Validator::make($request->json()->all(), [
+    	/*$validator = Validator::make($request->json()->all(), [
                 'equ_id' => 'required|integer',
                 'part_id' => 'required|integer',
             ]);
@@ -604,15 +604,25 @@ class DeportesController extends Controller
             $resultado = ['status' => 'fail',
                           'message' => 'Formato de entrada incorrecto'];
             return response()->json($resultado, 400);
-        }
+        }*/
 
         $pe = new \App\Partido_Equipo;
-        $pe->equ_id = $request->json('equ_id');
-        $pe->part_id = $request->json('part_id');
+        //$pe->equ_id = $request->json('equ_id');
+        //$pe->part_id = $request->json('part_id');
 
+        $pe->equ_id = $equ_id;
+        $pe->part_id = $par_id;
         $pe->save();
-        $resultado = ['status' => 'success',
-                          'data' => $pe];
+
+        $pes = DB::select('select partido__equipos.id,partido__equipos.equ_id, equipos.nombre as equipo, partido__equipos.part_id
+                            from partido__equipos
+                            left join equipos
+                            on partido__equipos.equ_id = equipos.id
+                            where partido__equipos.part_id ='.$par_id .' and partido__equipos.deleted_at is null
+');
+        
+
+        $resultado = ['data' => array('equipos'=>$pes)];
         return response()->json($resultado, 200);
 
 
@@ -662,9 +672,16 @@ class DeportesController extends Controller
 
 		$pe->delete();
 
-		$resultado = ['status' => 'success',
-                          'data' => $pe];
-		return response()->json($resultado, 200);
+		$pes = DB::select('select partido__equipos.id,partido__equipos.equ_id, equipos.nombre as equipo, partido__equipos.part_id
+                            from partido__equipos
+                            left join equipos
+                            on partido__equipos.equ_id = equipos.id
+                            where partido__equipos.part_id ='.$par_id .' and partido__equipos.deleted_at is null
+');
+        
+
+        $resultado = ['data' => array('equipos'=>$pes)];
+        return response()->json($resultado, 200);
 	}
 	//fin controlador partido equipo
 	//inicio partido tanto
@@ -679,11 +696,11 @@ class DeportesController extends Controller
     public function post_par_tan (Request $request)
     {
     	//validamos
-        if( Auth::user()->tipo_usuario != "administrador" ) {
+       /* if( Auth::user()->tipo_usuario != "administrador" ) {
              $resultado = [
                               'message' => 'No tienes permiso para esta acción'];
             return response()->json($resultado, 401);  
-            }
+            }*/
             $validator = Validator::make($request->json()->all(), [
                 'par_id' => 'required|integer',
                 'jug_id' => 'required|integer',
@@ -706,12 +723,42 @@ class DeportesController extends Controller
             $tanto->detalle = $request->json('detalle');
 
             $tanto->save();
+
+            $valor_equipo1 = DB::select('select sum(valor) as total
+                                        from partido__tantos
+                                        where par_id ='.$tanto->par_id.'  and equ_id = '.$tanto->equ_id.' and deleted_at is null');
+            $id_equipo2 = DB::select('  select equ_id
+                                        from partido__equipos
+                                        where partido__equipos.equ_id != '.$tanto->equ_id.' and partido__equipos.part_id = '.$tanto->par_id.' and deleted_at is null
+                                        limit 1');
+            
+
+           // return response()->json($id_equipo2[0]->equ_id, 200);
+
+            $valor_equipo2 = DB::select('select sum(valor) as total
+                                        from partido__tantos
+                                        where par_id ='.$tanto->par_id.'  and equ_id = '. $id_equipo2[0]->equ_id .' and deleted_at is null');
+            if($valor_equipo2 > $valor_equipo1)
+            {
+                $win_id = $id_equipo2[0]->equ_id;
+                $los_id = $tanto->equ_id;
+            }
+            else
+            {
+                $win_id = $tanto->equ_id;
+                $los_id = $id_equipo2[0]->equ_id;
+            }
+            $victoria = \App\Partido::find($tanto->par_id);
+            $victoria->win_id = $win_id;
+            $victoria->los_id = $los_id;
+            $victoria->save();
+
             $partido = DB::table('jugadors')
                         ->select('jugadors.id as jug_id', 'jugadors.nombre', 'partido__tantos.detalle','partido__tantos.valor', 'partidos.dep_id as dep_id','deportes.descripcion as deporte')
                         ->rightjoin('partido__tantos', 'partido__tantos.jug_id', '=', 'jugadors.id')
                         ->leftjoin('partidos','partidos.id', '=', 'partido__tantos.par_id')
                         ->leftjoin('deportes','deportes.id','=','partidos.dep_id')
-                        ->where('partidos.id','=', $id)
+                        ->where('partidos.id','=', $tanto->par_id)
                         ->whereNull('partido__tantos.deleted_at')
                        ->get();
         $resultado = ['data'=> array('resultados'=> $partido)];
@@ -871,6 +918,7 @@ class DeportesController extends Controller
                             ->leftjoin('deportes','deportes.id', '=', 'partidos.dep_id')
                             ->leftjoin('torneos','torneos.id', '=', 'partidos.tor_id')
                             ->whereNull('partidos.deleted_at')
+                            ->where('partidos.tor_id','=',$partido->tor_id)
                             ->get();
             $resultado = ['data'=> array('partidos'=>$partidos)];
         return response()->json($resultado, 200);
@@ -879,6 +927,21 @@ class DeportesController extends Controller
            /* $resultado = ['status' => 'success',
                           'data' => $partido];
             return response()->json($resultado, 200);*/
+    }
+
+    public function get_partidos_torneo_list($id)
+    {
+        $partidos = DB::table('partidos')
+                            ->select('partidos.id','partidos.dep_id','deportes.descripcion as deporte',
+                                'partidos.tor_id','torneos.nombre as torneo', 'partidos.fecha',
+                                'partidos.lugar', 'partidos.puntaje_ganador','partidos.puntaje_derrotado')
+                            ->leftjoin('deportes','deportes.id', '=', 'partidos.dep_id')
+                            ->leftjoin('torneos','torneos.id', '=', 'partidos.tor_id')
+                            ->whereNull('partidos.deleted_at')
+                            ->where('partidos.tor_id','=',$id)
+                            ->get();
+            $resultado = ['data'=> array('partidos'=>$partidos)];
+        return response()->json($resultado, 200);
     }
 
     public function put_partido ($id, Request $request)
@@ -949,11 +1012,14 @@ class DeportesController extends Controller
                             ->leftjoin('deportes','deportes.id', '=', 'partidos.dep_id')
                             ->leftjoin('torneos','torneos.id', '=', 'partidos.tor_id')
                             ->whereNull('partidos.deleted_at')
+                            ->where('partidos.tor_id','=',$partido->tor_id)
                             ->get();
             $resultado = ['data'=> array('partidos'=>$partidos)];
         return response()->json($resultado, 200);
     	
      }
+
+
     }
 
     public function delete_partido ($id)
@@ -965,7 +1031,7 @@ class DeportesController extends Controller
             return response()->json($resultado, 401);  
             }
     	$partido = \App\partido::find($id);
-
+        $torneo = $partido->tor_id;
     	$partido->delete();
     	$partidos = DB::table('partidos')
                             ->select('partidos.id','partidos.dep_id','deportes.descripcion as deporte',
@@ -974,6 +1040,7 @@ class DeportesController extends Controller
                             ->leftjoin('deportes','deportes.id', '=', 'partidos.dep_id')
                             ->leftjoin('torneos','torneos.id', '=', 'partidos.tor_id')
                             ->whereNull('partidos.deleted_at')
+                            ->where('partidos.tor_id','=',$torneo)
                             ->get();
             $resultado = ['data'=> array('partidos'=>$partidos)];
         return response()->json($resultado, 200);
@@ -983,13 +1050,57 @@ class DeportesController extends Controller
     //inicio torneo
     public function get_torneo(){
         $torneos = DB::table('torneos')
-                        ->select('torneos.id', 'torneos.dep_id','deportes.descripcion', 'torneos.nombre', 'torneos.campeon_id')
+                        ->select('torneos.id', 'torneos.dep_id','deportes.descripcion as deporte', 'torneos.nombre', 'torneos.campeon_id', 'torneos.descripcion')
                         ->leftjoin('deportes', 'deportes.id', '=', 'torneos.dep_id')
                         ->whereNull('torneos.deleted_at')
                         ->get();
         
         $resultado = ['data'=> array('torneos'=>$torneos)];
         return response()->json($resultado, 200);
+    }
+
+    public function get_torneo_status($id)
+    {
+        $torneos = DB::select('select partidos.win_id, equipos.nombre as ganador,partidos.puntaje_ganador, partidos.los_id, (select nombre from equipos where id = partidos.los_id) as perdedor, partidos.puntaje_derrotado
+                                from partidos
+                                left join equipos
+                                on partidos.win_id = equipos.id
+                                where partidos.tor_id = '.$id.'
+                                ');
+        $resultado = ['data'=> array('partidos'=>$torneos)];
+        return response()->json($resultado, 200);
+
+    }
+
+    public function get_torneo_ranking($id)
+    {
+        $partidos = DB::select('
+                            select partido__equipos.equ_id as equ_id, equipos.nombre, COALESCE(
+(select sum(partidos3.puntaje_ganador)
+from( select *
+    from partidos               
+) as partidos3
+where partidos3.win_id = partido__equipos.equ_id),
+ 0)+
+  COALESCE(
+(select sum(partidos2.puntaje_derrotado)
+from( select *
+    from partidos               
+) as partidos2
+where partidos2.los_id = partido__equipos.equ_id), 0) as puntaje
+from partidos
+left join partido__equipos
+on partido__equipos.part_id = partidos.id
+left join equipos
+on equipos.id = partido__equipos.equ_id
+where partidos.tor_id = '.$id.'
+group by partido__equipos.equ_id, equipos.nombre
+order by puntaje desc
+                            ');
+
+        $resultado = ['data'=> array('partidos'=>$partidos)];
+        return response()->json($resultado, 200);
+
     }
 
     public function get_todos_torneo()
@@ -1057,7 +1168,7 @@ class DeportesController extends Controller
             if($request->json('descripcion')!=null){$torneo->descripcion = $request->json('descripcion');}
             $torneo->save();
             $torneos = DB::table('torneos')
-                        ->select('torneos.id', 'torneos.dep_id','deportes.descripcion', 'torneos.nombre', 'torneos.campeon_id')
+                        ->select('torneos.id', 'torneos.dep_id','deportes.descripcion as deporte', 'torneos.nombre', 'torneos.campeon_id', 'torneos.descripcion')
                         ->leftjoin('deportes', 'deportes.id', '=', 'torneos.dep_id')
                         ->whereNull('torneos.deleted_at')
                         ->get();
@@ -1102,7 +1213,7 @@ class DeportesController extends Controller
 
              $torneo->save();
              $torneos = DB::table('torneos')
-                        ->select('torneos.id', 'torneos.dep_id','deportes.descripcion', 'torneos.nombre', 'torneos.campeon_id')
+                        ->select('torneos.id', 'torneos.dep_id','deportes.descripcion as deporte', 'torneos.nombre', 'torneos.campeon_id', 'torneos.descripcion')
                         ->leftjoin('deportes', 'deportes.id', '=', 'torneos.dep_id')
                         ->whereNull('torneos.deleted_at')
                         ->get();
@@ -1123,7 +1234,7 @@ class DeportesController extends Controller
 
         $torneo->delete();
         $torneos = DB::table('torneos')
-                        ->select('torneos.id', 'torneos.dep_id','deportes.descripcion', 'torneos.nombre', 'torneos.campeon_id')
+                        ->select('torneos.id', 'torneos.dep_id','deportes.descripcion as deporte', 'torneos.nombre', 'torneos.campeon_id', 'torneos.descripcion')
                         ->leftjoin('deportes', 'deportes.id', '=', 'torneos.dep_id')
                         ->whereNull('torneos.deleted_at')
                         ->get();

@@ -233,7 +233,7 @@
 
   
    
-    Route::post('/api/partido_equipo','DeportesController@post_par_equ');
+    
     Route::put('/api/partido_equipo/{id}','DeportesController@put_par_equ');
     Route::delete('/api/partido_equipo/{id}','DeportesController@delete_par_equ');
 
@@ -242,3 +242,21 @@
     Route::get('/api/amonestaciones/jugador/{id}','DeportesController@get_jug_amonestacion');
     Route::get('/api/amonestaciones/equipo/{id}','DeportesController@get_equ_amonestacion');
     Route::get('/api/amonestaciones/partido/{id}','DeportesController@get_par_amonestacion');
+
+    Route::get('/api/equipos_jugadores/{id}','DeportesController@get_equ_jug');
+
+    Route::post('/api/partido/{par_id}/equipo/{equ_id}','DeportesController@post_par_equ');
+
+    Route::get('/api/torneo/{id}/partidos','DeportesController@get_torneo_status');
+    
+    Route::get('/api/torneo/{id}/ranking','DeportesController@get_torneo_ranking');
+
+    Route::get('/api/torneos/{id}','DeportesController@get_partidos_torneo_list'); //lista los partidos de un torneo
+
+    
+
+
+
+    
+
+

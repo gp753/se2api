@@ -27,6 +27,8 @@ class Partido extends Model
         return $this->belongsTo('Deporte');
     }
     
+
+    
     Public function partido__tantos() {
         return $this->hasMany('Partido');
     }
