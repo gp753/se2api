@@ -25,7 +25,4 @@ class Deporte extends Model
     Public function partidos() {
         return $this->hasMany('Deporte');
     }
-    Public function torneos() {
-        return $this->hasMany('Deporte');
-    }
 }

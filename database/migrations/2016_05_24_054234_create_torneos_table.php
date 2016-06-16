@@ -24,6 +24,8 @@ class CreateTorneosTable extends Migration
             $table->string('nombre');
             $table->integer('campeon_id')->unsigned()->nullable();
             $table->text('descripcion')->nullable();
+            $table->integer('archivo_id')->unsigned()->nullable();
+            $table->foreign('archivo_id')->references('id')->on('archivos');
             
         });
     }

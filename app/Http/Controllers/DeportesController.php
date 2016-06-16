@@ -15,7 +15,7 @@ class DeportesController extends Controller
     //
      public function __construct()
     {
-        /*$this->middleware('auth', ['only' => [
+        $this->middleware('auth', ['only' => [
             'post_torneo',
             'put_torneo',
             'delete_torneo',
@@ -31,7 +31,7 @@ class DeportesController extends Controller
             'post_equipo',
             'put_equipo',
             'delete_equipo'
-            ]]);*/
+            ]]);
     }
 
     public function post_amonestacion (Request $request)
@@ -119,15 +119,19 @@ class DeportesController extends Controller
                 return response()->json($resultado, 200);
     }
 
-    public function get_goleadores() //goleadores
+    public function get_goleadores($id) //goleadores por torneo
     {
-        $goleadores = DB::table('partido__tantos')
-                        ->select('partido__tantos.jug_id','jugadors.nombre as jugador', DB::raw('sum(partido__tantos.valor) as goles'))
-                        ->leftjoin('jugadors','jugadors.id','=','partido__tantos.jug_id')
-                        ->groupBy('partido__tantos.jug_id','jugadors.nombre')
-                        ->orderBy('goles','desc')
-                        ->whereNull('partido__tantos.deleted_at')
-                        ->get();
+        $goleadores = DB::select('
+                                select partido__tantos.jug_id , jugadors.nombre as jugador, sum(partido__tantos.valor) as goles
+from partido__tantos
+left join jugadors
+on jugadors.id = partido__tantos.jug_id
+left join partidos
+on partidos.id = partido__tantos.par_id
+where partido__tantos.deleted_at is null and partidos.tor_id = '.$id.' 
+group by partido__tantos.jug_id, jugadors.nombre
+order by goles desc
+                                ');
         $resultado = ['data' => array('goleadores'=>$goleadores),
                             'message' => 'success'];
         return response()->json($resultado, 200);
@@ -510,6 +514,12 @@ class DeportesController extends Controller
     public function post_jugador (Request $request)
     {
     	//validamos
+        if( Auth::user()->tipo_usuario != "administrador" ) {
+             $resultado = [
+                              'message' => 'No tienes permiso para esta acción'];
+            return response()->json($resultado, 401);  
+            }
+
             $validator = Validator::make($request->json()->all(), [
                 'usu_id' => 'integer',
                 'nombre' =>'required|string',
@@ -708,11 +718,11 @@ class DeportesController extends Controller
     public function post_par_tan (Request $request)
     {
     	//validamos
-       /* if( Auth::user()->tipo_usuario != "administrador" ) {
+        if( Auth::user()->tipo_usuario != "administrador" ) {
              $resultado = [
                               'message' => 'No tienes permiso para esta acción'];
             return response()->json($resultado, 401);  
-            }*/
+            }
             $validator = Validator::make($request->json()->all(), [
                 'par_id' => 'required|integer',
                 'jug_id' => 'required|integer',
@@ -939,6 +949,70 @@ class DeportesController extends Controller
            /* $resultado = ['status' => 'success',
                           'data' => $partido];
             return response()->json($resultado, 200);*/
+    }
+
+    public function get_torneo_datos()
+    {
+        $torneos = DB::select('
+                            select torneos.id as id_torneo, torneos.nombre, count(partidos.id) as encuentros_disputados,
+(select count(id)
+from
+(select partidos.tor_id as id, count(partido__equipos.equ_id)
+from partido__equipos
+left join partidos
+on partidos.id = partido__equipos.part_id
+left join equipos
+on equipos.id = partido__equipos.equ_id
+where partidos.tor_id = torneos.id and partido__equipos.deleted_at is null
+group by partidos.tor_id, partido__equipos.equ_id
+order by id) as equ) as equipos_participantes,
+(select count(id)
+from
+(
+select jugadors.id, count(jugador__equipos.equ_id)
+from jugadors
+left join jugador__equipos
+on jugadors.id = jugador__equipos.jug_id
+left join partido__equipos
+on partido__equipos.equ_id = jugador__equipos.equ_id
+left join partidos
+on partidos.id = partido__equipos.part_id
+where jugador__equipos.deleted_at is null and partidos.tor_id =torneos.id
+group by jugadors.id
+) as jugadores) as jugadores_participantes,
+(select sum(partido__tantos.valor)
+from partido__tantos
+left join partidos
+on partido__tantos.par_id = partidos.id
+where partidos.tor_id = torneos.id and partidos.deleted_at is null) as goles
+from partidos
+left join torneos
+on torneos.id = partidos.tor_id
+where torneos.deleted_at is null
+group by torneos.id, torneos.nombre
+order by id_torneo desc
+limit 1;
+                                ');
+         $resultado = ['data'=> array('torneos'=>$torneos)];
+        return response()->json($resultado, 200);
+    }
+
+    public function get_equipos_torneo($id)
+    {
+        $equipos = DB::select('
+                                select partido__equipos.equ_id as id, equipos.nombre
+from partido__equipos
+left join partidos
+on partidos.id = partido__equipos.part_id
+left join equipos
+on equipos.id = partido__equipos.equ_id
+where partidos.tor_id = '.$id.' and partido__equipos.deleted_at is null
+group by partido__equipos.equ_id, equipos.nombre
+order by id
+                            ');
+        $resultado = ['data'=> array('equipos'=>$equipos)];
+        return response()->json($resultado, 200);
+
     }
 
     public function get_partidos_torneo_list($id)

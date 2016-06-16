@@ -225,7 +225,7 @@
     
     Route::get('/api/partidoResultados/{id}','DeportesController@get_tantos_partido');
 
-    Route::get('/api/goleadores','DeportesController@get_goleadores');
+   
 
     Route::post('/api/partidoResultados','DeportesController@post_par_tan');
     Route::put('/api/partido_tanto/{id}','DeportesController@put_par_tan');
@@ -253,4 +253,7 @@
 
     Route::get('/api/torneos/{id}','DeportesController@get_partidos_torneo_list'); //lista los partidos de un torneo
     Route::get('/api/partido/{id}/equipo','DeportesController@get_par_equipos');
+    Route::get('/api/torneo/{id}/equipos','DeportesController@get_equipos_torneo');
+    Route::get('/api/torneo/{id}/goleadores','DeportesController@get_goleadores');
+    Route::get('/api/torneo/datos','DeportesController@get_torneo_datos');
     

@@ -20,4 +20,9 @@ class Archivo extends Model
     public function noticias() {
         return $this->belongsToMany('Noticia');
     }
+
+    public function torneos()
+    {
+        return $this->belongsToMany('torneos');
+    }
 }
