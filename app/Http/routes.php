@@ -252,11 +252,5 @@
     Route::get('/api/torneo/{id}/ranking','DeportesController@get_torneo_ranking');
 
     Route::get('/api/torneos/{id}','DeportesController@get_partidos_torneo_list'); //lista los partidos de un torneo
-
+    Route::get('/api/partido/{id}/equipo','DeportesController@get_par_equipos');
     
-
-
-
-    
-
-

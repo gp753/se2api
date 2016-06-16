@@ -666,6 +666,18 @@ class DeportesController extends Controller
         } 
 	}
 
+    public function get_par_equipos($id)
+    {
+        $pes = DB::select('select partido__equipos.id,partido__equipos.equ_id, equipos.nombre as equipo, partido__equipos.part_id
+                            from partido__equipos
+                            left join equipos
+                            on partido__equipos.equ_id = equipos.id
+                            where partido__equipos.part_id ='.$id .' and partido__equipos.deleted_at is null');
+
+        $resultado = ['data' => array('equipos'=>$pes)];
+        return response()->json($resultado, 200);
+    }
+
 	public function delete_par_equ($id)
 	{
 		$pe = \App\Partido_Equipo::find($id);
@@ -920,7 +932,7 @@ class DeportesController extends Controller
                             ->whereNull('partidos.deleted_at')
                             ->where('partidos.tor_id','=',$partido->tor_id)
                             ->get();
-            $resultado = ['data'=> array('partidos'=>$partidos)];
+            $resultado = ['data'=> array('partidos'=>$partidos, 'partido'=>$partido)];
         return response()->json($resultado, 200);
 
 
